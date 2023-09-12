@@ -1,18 +1,24 @@
 package ru.asteises.checkbrackets.controller;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.*;
+import ru.asteises.checkbrackets.model.TextDto;
 import ru.asteises.checkbrackets.service.BracketsService;
+import ru.asteises.checkbrackets.util.Endpoints;
 
+@Slf4j
 @Getter
 @Setter
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api")
 public class BracketsController {
@@ -20,12 +26,16 @@ public class BracketsController {
     private final BracketsService bracketsService;
 
     /**
+     * Метод принимает текст на проверку.
      *
-     * @param text
-     * @return
+     * @param text - String
+     * @return - ResponseEntity<Boolean>
      */
-    @PostMapping("/checkBrackets")
-    public ResponseEntity<Boolean> checkBrackets(@RequestParam String text) {
-        return ResponseEntity.ok(bracketsService.checkBrackets(text));
+    @PostMapping(value = Endpoints.CHECK_BRACKETS)
+    public ResponseEntity<Boolean> checkBrackets (
+            @Valid
+            @RequestBody TextDto text) throws HttpMessageNotReadableException {
+        log.info("Пришел текст: {}", text.getText());
+        return new ResponseEntity<>(bracketsService.checkBrackets(text), HttpStatus.OK);
     }
 }
