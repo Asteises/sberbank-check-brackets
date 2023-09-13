@@ -22,8 +22,8 @@ public class BracketsServiceImpl implements BracketsService {
         Stack<Character> charsBetweenBrackets = new Stack<>();
         int bracketCount = 0;
         char checkChar;
-        for (int i = 0; i < text.getText().length(); i++) {
-            checkChar = text.getText().charAt(i);
+        for (int i = 0; i < text.getContent().length(); i++) {
+            checkChar = text.getContent().charAt(i);
             if (isBracket(checkChar)) {
                 if (isOpenBracket(checkChar) && !charsBetweenBrackets.isEmpty()) {
                     bracketCount += 1;

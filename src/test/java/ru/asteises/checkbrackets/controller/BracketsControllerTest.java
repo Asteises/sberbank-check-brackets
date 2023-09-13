@@ -1,65 +1,82 @@
 package ru.asteises.checkbrackets.controller;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import ru.asteises.checkbrackets.exception.ExceptionApiHandler;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.asteises.checkbrackets.model.TextDto;
 import ru.asteises.checkbrackets.service.BracketsService;
-import ru.asteises.checkbrackets.service.impl.BracketsServiceImpl;
+import ru.asteises.checkbrackets.util.Endpoints;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@Getter
+@Setter
+@WebMvcTest(BracketsController.class)
 class BracketsControllerTest {
 
     @Autowired
-    BracketsController bracketsController;
+    private MockMvc mockMvc;
 
-    @Autowired
-    ExceptionApiHandler exceptionApiHandler;
+    @MockBean
+    private BracketsService bracketsService;
 
-    @Autowired
-    TextDto text;
-
-    @Mock
-    BracketsService bracketsService;
-
-    @BeforeEach
-    void init() {
-        bracketsService = new BracketsServiceImpl();
-        bracketsController = new BracketsController(bracketsService);
-        exceptionApiHandler = new ExceptionApiHandler();
-        text = new TextDto();
+    private static String objectToJsonString(TextDto text) {
+        try {
+            return new ObjectMapper().writeValueAsString(text);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Test
-    void checkBrackets_ok() {
-        text.setText("Text (text). Text ( text (text)).");
-        ResponseEntity<Boolean> response = bracketsController.checkBrackets(text);
-        ResponseEntity<Boolean> expected = new ResponseEntity<Boolean>(true, HttpStatus.OK);
-        Assertions.assertEquals(expected, response);
+    void checkBrackets_ok() throws Exception {
+        TextDto text = new TextDto();
+        text.setContent("Test (text).");
+
+        when(bracketsService.checkBrackets(any(TextDto.class))).thenReturn(true);
+
+        this.mockMvc.perform(post(Endpoints.API + Endpoints.CHECK_BRACKETS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(Objects.requireNonNull(objectToJsonString(text))))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
     }
 
     @Test
-    void checkBrackets_textIsEmpty() {
-        text.setText(null);
+    void checkBrackets_textContentIsEmpty() throws Exception {
+        TextDto text = new TextDto();
+        text.setContent(null);
 
-        Exception exception = assertThrows(HttpMessageNotReadableException.class, () -> bracketsController.checkBrackets(text));
-        when(bracketsController.checkBrackets(text)).thenThrow(HttpMessageNotReadableException.class);
+        this.mockMvc.perform(post(Endpoints.API + Endpoints.CHECK_BRACKETS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(Objects.requireNonNull(objectToJsonString(text))))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException));
+    }
 
-        String expectedMessage = "текст не должен быть пустым";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
+    @Test
+    void checkBrackets_textIsNull() throws Exception {
+        this.mockMvc.perform(post(Endpoints.API + Endpoints.CHECK_BRACKETS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectToJsonString(null)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof HttpMessageNotReadableException));
     }
 }

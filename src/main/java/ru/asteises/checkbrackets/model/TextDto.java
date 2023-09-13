@@ -13,12 +13,12 @@ import lombok.Setter;
 public class TextDto {
 
     @NotBlank(message = "текст не должен быть пустым")
-    private String text;
+    private String content;
 
     @Override
     public String toString() {
         return "TextDto{" +
-                "text='" + text + '\'' +
+                "text='" + content + '\'' +
                 '}';
     }
 }
