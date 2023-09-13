@@ -3,19 +3,16 @@ package ru.asteises.checkbrackets.service.impl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.asteises.checkbrackets.model.TextDto;
 import ru.asteises.checkbrackets.service.BracketsService;
 
-@ExtendWith(MockitoExtension.class)
 class BracketsServiceImplTest {
 
-    @Mock
+    @Autowired
     BracketsService bracketsService;
 
-    @Mock
+    @Autowired
     TextDto text;
 
     @BeforeEach

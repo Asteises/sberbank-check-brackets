@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -21,17 +22,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BracketsControllerTest {
 
-    @Mock
+    @Autowired
     BracketsController bracketsController;
+
+    @Autowired
+    ExceptionApiHandler exceptionApiHandler;
+
+    @Autowired
+    TextDto text;
 
     @Mock
     BracketsService bracketsService;
-
-    @Mock
-    ExceptionApiHandler exceptionApiHandler;
-
-    @Mock
-    TextDto text;
 
     @BeforeEach
     void init() {
